@@ -12,12 +12,21 @@ find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIRS})
 link_libraries(${GLEW_LIBRARIES})
 
+add_executable(efs src/main.cpp src/application.cpp src/simulation.cpp src/grid.h src/staggeredGrid.h src/vec2.cpp src/LBM.cpp)
 
-add_executable(efs src/main.cpp)
+set(IMGUI_PATH  "/mnt/d/dev/eulerianFluidSimulation/deps/imgui")
+
+# Compile as static library
+file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp ${IMGUI_PATH}/backends/imgui_impl_opengl3.cpp ${IMGUI_PATH}/backends/imgui_impl_glfw.cpp)
+add_library("ImGui" STATIC ${IMGUI_SOURCES})
+target_include_directories("ImGui" PUBLIC ${IMGUI_PATH} /mnt/d/dev/eulerianFluidSimulation/deps/imgui/backends)
+
 target_link_libraries(efs PRIVATE glfw)
 target_link_libraries(efs PRIVATE ${OPENGL_LIBRARIES})
+target_link_libraries(efs PRIVATE ImGui ${CMAKE_DL_LIBS})
 target_include_directories(efs PRIVATE ${OPENGL_INCLUDE_DIRS})
-target_include_directories(efs PUBLIC "/mnt/d/dev/eulerianFluidSimulation/deps/glew-cmake/include")
+target_include_directories(efs PUBLIC "/mnt/d/dev/eulerianFluidSimulation/deps/glew-cmake/include" )
+
 
 
 #[[cmake_minimum_required(VERSION 3.12)
