@@ -1,11 +1,11 @@
 #include <iostream>
-#include "application.h"
+#include "application.cuh"
 
 
 int main() {
 
     try {
-        Application app("Test", 400, 80);
+        Application app("Fluid Simulation", 1500, 900);
         app.run();
     } catch (const std::runtime_error& e) {
         std::cerr << "Error: " << e.what() << std::endl;

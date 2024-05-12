@@ -12,7 +12,7 @@ find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIRS})
 link_libraries(${GLEW_LIBRARIES})
 
-add_executable(efs src/main.cpp src/application.cpp src/simulation.cpp src/grid.h src/staggeredGrid.h src/vec2.cpp src/LBM.cpp)
+add_executable(efs src/main.cpp src/application.cu src/utils.cpp src/color.cpp src/LBMGPU.cu)
 
 set(IMGUI_PATH  "/mnt/d/dev/eulerianFluidSimulation/deps/imgui")
 

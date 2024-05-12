@@ -1,5 +1,5 @@
-#ifndef EFS_APPLICATION_H
-#define EFS_APPLICATION_H
+#ifndef EFS_APPLICATION_CUH
+#define EFS_APPLICATION_CUH
 
 #include <iostream>
 #include <string>
@@ -12,8 +12,11 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_glfw.h>
 
-#include "simulation.h"
-#include "LBM.h"
+#include "LBMGPU.cuh"
+
+#include <cuda_gl_interop.h>
+#include <cuda_runtime.h>
+
 
 class Application {
 public:
@@ -23,7 +26,7 @@ public:
     void run();
 
 private:
-    void renderImGui() const;
+    void renderImGui();
 
     void createWindow(const std::string& name, int w, int h);
     std::string readShaderFromFile(const std::string& filename) const;
@@ -47,8 +50,9 @@ private:
     GLuint m_VBO;
     GLuint m_EBO;
 
-    LBM* m_sim;
+    LBMGPU* m_sim;
+    SimulationParams m_params;
 };
 
 
-#endif //EFS_APPLICATION_H
+#endif //EFS_APPLICATION_CUH

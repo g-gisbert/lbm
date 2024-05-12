@@ -1,14 +1,16 @@
-#include "application.h"
+#include "application.cuh"
 
 #include <fstream>
 
+
 Application::Application(const std::string& windowName, int width, int height) :
-    m_windowWidth(width), m_windowHeight(height), m_frameBuffer(new unsigned char[width*height*3]) {
+    m_windowWidth(width), m_windowHeight(height), m_frameBuffer(new unsigned char[width*height*3]),
+    m_params{1.95f, 1.0f, false} {
 
     if (!glfwInit())
         throw std::runtime_error("Failed to initialize GLFW");
 
-    createWindow(windowName, width*3, height*3);
+    createWindow(windowName, width, height);
 
     if (glewInit() != GLEW_OK)
         throw std::runtime_error("Failed to initialize GLEW");
@@ -30,7 +32,7 @@ Application::Application(const std::string& windowName, int width, int height) :
     ImGui_ImplOpenGL3_Init("#version 130");
 
     glUseProgram(m_shaderProgram);
-    m_sim = new LBM(width, height);
+    m_sim = new LBMGPU(width, height);
 }
 
 Application::~Application() {
@@ -43,6 +45,7 @@ Application::~Application() {
     glDeleteShader(m_fragmentShader);
 
     delete[] m_frameBuffer;
+    delete m_sim;
 
     glDeleteTextures(1, &m_texture);
     glDeleteBuffers(1, &m_VBO);
@@ -54,37 +57,31 @@ Application::~Application() {
 }
 
 void Application::run() {
-    auto start = std::chrono::high_resolution_clock::now();
-    auto end = std::chrono::high_resolution_clock::now();
+
     while (!glfwWindowShouldClose(m_window)) {
-        glBindTexture(GL_TEXTURE_2D, m_texture);
-        /*cpt++;
-        glBindTexture(GL_TEXTURE_2D, m_texture);
-        for (int i = 0; i < m_windowWidth * m_windowHeight * 3; ++i) {
-            m_frameBuffer[i] = (i/m_windowWidth + (cpt%256)*i + i + cpt) % 256;
-        }*/
-        end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed_seconds = end - start;
-        start = std::chrono::high_resolution_clock::now();
-        m_sim->step(elapsed_seconds.count(), m_frameBuffer);
+
+        m_sim->step(m_params, m_frameBuffer);
 
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_windowWidth, m_windowHeight, GL_RGB, GL_UNSIGNED_BYTE, m_frameBuffer);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-        //renderImGui();
+        renderImGui();
         glfwSwapBuffers(m_window);
+
         glfwPollEvents();
     }
 }
 
-inline void Application::renderImGui() const {
+inline void Application::renderImGui() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always, ImVec2(0, 0));
     ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiCond_Always);
     ImGui::Begin("Simulation parameters", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-    ImGui::Text("Hello, world!");
+    ImGui::SliderFloat("Tau", &m_params.invTau, 1.0f, 1.98f);
+    ImGui::SliderFloat("Speed", &m_params.speed, 0.0f, 10.0f);
+    ImGui::Checkbox("Velocity field view", &m_params.mode);
     ImGui::End();
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
